@@ -173,4 +173,6 @@ cron.schedule('0 7 * * *', async () => {
 // ==================== 启动 ====================
 app.listen(8000, () => {
   console.log('BiliTask 已启动: http://localhost:8000')
+  const cmd = process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open'
+  require('child_process').exec(cmd + ' http://localhost:8000')
 })
