@@ -4,6 +4,15 @@ const QRCode = require('qrcode')
 const api = require('./lib/bilibili')
 const { runTasks } = require('./lib/tasks')
 const fs = require('fs')
+const path = require('path')
+
+// 首次运行：自动从 example 复制 config
+const configPath = path.join(__dirname, 'config.json')
+const examplePath = path.join(__dirname, 'config.example.json')
+if (!fs.existsSync(configPath) && fs.existsSync(examplePath)) {
+  fs.copyFileSync(examplePath, configPath)
+  console.log('已从 config.example.json 创建 config.json')
+}
 
 const app = express()
 app.use(express.json())
