@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "stop": "node -e \"process.kill(require('fs').readFileSync('.pid','utf8').trim())\" 2>/dev/null; rm -f .pid"
+    "stop": "node stop.js"
   },
   "author": "Echo979",
   "license": "MIT",
