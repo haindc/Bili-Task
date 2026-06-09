@@ -182,6 +182,11 @@ cron.schedule('0 7 * * *', async () => {
 // ==================== 启动 ====================
 app.listen(8000, () => {
   console.log('BiliTask 已启动: http://localhost:8000')
+  fs.writeFileSync(path.join(__dirname, '.pid'), String(process.pid))
   const cmd = process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open'
   require('child_process').exec(cmd + ' http://localhost:8000')
 })
+
+// Cleanup on exit
+process.on('SIGINT', () => { try { fs.unlinkSync(path.join(__dirname, '.pid')) } catch(e) {}; process.exit(0) })
+process.on('SIGTERM', () => { try { fs.unlinkSync(path.join(__dirname, '.pid')) } catch(e) {}; process.exit(0) })
