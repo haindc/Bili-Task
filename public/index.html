@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BiliTask</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:'ShangShouTi';src:url('/fonts/ShangShouTi.ttf') format('truetype')}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FFF5F7; --surface:#FFFFFF; --surface2:#FCE4EC;
+  --border:#F8BBD0; --primary:#E91E63; --text:#880E4F; --text2:#AD1457;
+  --red:#E53935; --radius:16px;
+}
+/* ── 动画 (主动, @keyframes) ── */
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes slideDown{from{max-height:0;opacity:0}to{max-height:400px;opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ── 基础过渡 (被动, transition) ── */
+body{
+  font-family:'ShangShouTi','Fira Sans',-apple-system,sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  transition:background .5s ease,color .5s ease;
+}
+/* ── 全局主题过渡 ── */
+.qr-box,.user-bar,.exp-card,.card,.setting,.log-box,.color-panel,.dark-btn,.color-btn,.btn,.btn-sm,.back-link,.login-brand,.toggle,.coin-slider{
+  transition:background .5s ease,border-color .5s ease,color .5s ease,box-shadow .5s ease
+}
+/* ── 微交互过渡 ── */
+.color-btn,.dark-btn{transition:transform .2s ease,background .5s ease,border-color .5s ease}
+.color-btn:hover,.dark-btn:hover{transform:scale(1.1)}
+.color-btn{position:fixed;top:60px;right:16px;width:38px;height:38px;border-radius:50%;background:var(--primary);border:2px solid var(--border);cursor:pointer;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.color-btn .swatch{color:#fff;font-size:14px;line-height:38px;text-align:center}
+.dark-btn{position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:50%;background:var(--surface);border:2px solid var(--border);cursor:pointer;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:14px}
+/* ── 色盘 (动画展开) ── */
+.color-panel{position:fixed;top:104px;right:16px;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:14px;z-index:99;box-shadow:0 4px 20px rgba(0,0,0,.12);display:none}
+.color-panel.show{display:block;animation:fadeSlideIn .3s cubic-bezier(.22,.61,.36,1)}
+.color-panel input[type=color]{width:140px;height:34px;border:none;border-radius:8px;cursor:pointer}
+.color-panel .reset-btn{display:block;width:100%;margin-top:8px;padding:7px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:14px;cursor:pointer;font-family:'ShangShouTi','Fira Sans',sans-serif;transition:background .15s ease}
+.color-panel .reset-btn:hover{background:var(--surface2)}
+/* ── 高斯模糊过渡 ── */
+.container{width:100%;max-width:580px;padding:20px;transition:filter .5s ease}
+.blur-bg{position:fixed;inset:0;z-index:201;pointer-events:none;transition:opacity .5s ease,background .5s ease;opacity:0}
+/* ── 页面切换 (动画) ── */
+.page{display:none;animation:fadeSlideIn .35s cubic-bezier(.22,.61,.36,1)}
+.page.active{display:block}
+h2{font-family:'ShangShouTi','Fira Sans',sans-serif;font-size:24px;font-weight:600;margin-bottom:24px;text-align:center;color:var(--text);letter-spacing:-0.5px}
+/* ── 登录页 ── */
+.login-brand{text-align:center;margin-bottom:32px}
+.login-logo{font-family:'ShangShouTi','Fira Code',monospace;font-size:34px;font-weight:700;letter-spacing:6px;color:var(--primary);margin-bottom:6px}
+.login-sub{font-family:'ShangShouTi','ShangShouTi','Fira Sans',sans-serif;font-size:14px;color:var(--text2);letter-spacing:1px}
+.qr-box{background:var(--surface);border-radius:var(--radius);padding:32px 24px;text-align:center;border:1px solid var(--border)}
+.qr-box img{width:220px;height:220px;border-radius:12px;border:2px solid var(--border);padding:8px;background:#fff}
+.qr-tip{margin-top:14px;color:var(--text2);font-size:16px}
+/* ── 用户信息栏 ── */
+.header-brand{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
+.header-logo{font-family:'ShangShouTi','Fira Code',monospace;font-size:22px;font-weight:700;letter-spacing:4px;color:var(--primary)}
+.header-sub{font-family:'ShangShouTi','ShangShouTi','Fira Sans',sans-serif;font-size:13px;color:var(--text2);letter-spacing:.5px}
+.user-bar{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding:16px;background:var(--surface);border-radius:var(--radius);border:2px solid var(--border)}
+.user-bar img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--border);transition:transform .2s ease}
+.user-bar img:hover{transform:rotate(6deg) scale(1.08);cursor:pointer}
+.user-info{flex:1}
+.user-name{font-size:20px;font-weight:600;color:var(--text)}
+.user-id{font-size:15px;color:var(--text2);margin-top:2px}
+/* ── 经验卡 ── */
+.exp-card{background:var(--surface);border-radius:var(--radius);padding:16px 18px;border:2px solid var(--border);margin-bottom:20px}
+.exp-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin:8px 0}
+.exp-fill{height:100%;background:linear-gradient(90deg,var(--primary),#F48FB1);border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.exp-row{display:flex;justify-content:space-between;align-items:center}
+.exp-level{font-family:'ShangShouTi','Fira Sans',sans-serif;font-size:15px;font-weight:600;color:var(--primary)}
+.exp-text{font-size:15px;color:var(--text2)}
+.exp-forecast{font-size:15px;color:var(--primary);text-align:center;margin-top:6px;font-weight:500}
+/* ── 任务卡片 ── */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.card{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:16px 10px;text-align:center;transition:transform .15s ease,box-shadow .15s ease;cursor:default;position:relative}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.06);cursor:pointer}
+.card.done{border-color:var(--primary);border-width:2.5px;background:linear-gradient(135deg,rgba(200,200,200,.04),rgba(200,200,200,.02))}
+.card.done::after{content:'';position:absolute;top:-7px;right:-7px;width:22px;height:22px;background:var(--primary);mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");mask-size:14px;mask-position:center;mask-repeat:no-repeat;-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");-webkit-mask-size:14px;-webkit-mask-position:center;-webkit-mask-repeat:no-repeat;animation:checkPop .4s cubic-bezier(.18,.89,.32,1.27)}
+.card.disabled{opacity:.45;pointer-events:none}
+.card.disabled:hover{transform:none;box-shadow:none}
+.card-icon{margin-bottom:8px;width:24px;height:24px;display:inline-block;color:var(--text2)}
+.card.done .card-icon{color:var(--primary)}
+.card.disabled .card-icon{color:var(--border)}
+.card-name{font-family:'ShangShouTi','Fira Sans',sans-serif;font-size:15px;font-weight:500;margin-bottom:4px;color:var(--text2)}
+.card.done .card-name{color:var(--text)}
+.card-exp{font-size:14px;color:var(--primary);margin-bottom:4px;font-family:'ShangShouTi','Fira Sans',sans-serif}
+.card-status{font-size:13px}
+.card-note{font-size:11px;color:var(--text2);margin-top:2px;opacity:.7}
+/* ── 按钮 (过渡) ── */
+.btns{display:flex;gap:10px;margin-bottom:16px}
+.btn{flex:1;padding:13px 18px;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;transition:transform .1s ease,background .15s ease,box-shadow .15s ease,filter .15s ease;font-family:'ShangShouTi','Fira Sans',sans-serif}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 3px 12px rgba(0,0,0,.1)}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(0,0,0,.15);filter:brightness(1.05)}
+.btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border)}
+.btn-outline:hover{background:var(--surface2);border-color:var(--text2)}
+.btn-danger{background:transparent;color:var(--red);border:1.5px solid rgba(239,68,68,.3)}
+.btn-danger:hover{background:rgba(239,68,68,.08);border-color:var(--red)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:disabled:active{transform:none}
+.btn-sm{padding:8px 16px;border-radius:8px;font-size:15px;font-weight:500;background:transparent;color:var(--red);border:1px solid rgba(239,68,68,.2);cursor:pointer;transition:background .15s ease,border-color .15s ease;width:100%;margin-top:4px;font-family:'ShangShouTi','Fira Sans',sans-serif}
+.btn-sm:hover{background:rgba(239,68,68,.08);border-color:var(--red)}
+/* ── 设置页 (交错动画) ── */
+.setting{display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;animation:fadeIn .4s ease both}
+.setting:nth-child(1){animation-delay:0s}
+.setting:nth-child(2){animation-delay:.06s}
+.setting:nth-child(3){animation-delay:.12s}
+.setting:nth-child(4){animation-delay:.18s}
+.setting-label{font-size:18px;font-weight:500;color:var(--text)}
+.setting-exp{font-size:14px;color:var(--primary);font-family:'ShangShouTi','Fira Sans',sans-serif;margin-top:2px}
+.toggle{position:relative;width:46px;height:24px;background:var(--surface2);border-radius:12px;cursor:pointer;flex-shrink:0}
+.toggle.on{background:var(--primary)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:var(--text);border-radius:50%;transition:left .2s cubic-bezier(.4,0,.2,1)}
+.toggle.on::after{left:24px}
+.toggle:active::after{width:24px}
+.coin-slider{width:100px;margin:0 8px;flex-shrink:0}
+.coin-val{font-size:16px;font-weight:600;min-width:24px;text-align:center;color:var(--primary);font-family:'ShangShouTi','Fira Sans',sans-serif}
+input[type=range]{width:100px;accent-color:var(--primary)}
+/* ── 日志 (动画展开) ── */
+.log-box{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:14px;max-height:220px;overflow-y:auto;font-family:'Fira Code',monospace;color:var(--text);display:none;line-height:1.6}
+.log-box.show{display:block;animation:slideDown .3s ease}
+.log-box .info{color:var(--text2)}
+.log-box .err{color:var(--red)}
+.back-link{display:block;text-align:center;color:var(--text2);font-size:16px;margin-top:20px;cursor:pointer;text-decoration:none;transition:color .15s ease;font-family:'ShangShouTi','Fira Sans',sans-serif}
+.back-link:hover{color:var(--text)}
+.loading{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-right:6px;vertical-align:middle}
+.icon{display:inline-block;vertical-align:middle}
+.footer-link{text-align:center;margin-top:20px}
+.footer-link a{font-size:14px;color:var(--text2);text-decoration:none;transition:color .15s ease;opacity:.6}
+.footer-link a:hover{color:var(--primary);opacity:1}
+/* ── 无障碍 ── */
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+@media(max-width:480px){.cards{grid-template-columns:repeat(2,1fr)}.container{padding:12px}}
+</style>
+</head>
+<body>
+<div class="dark-btn" id="darkBtn" onclick="toggleMode()" title="切换暗色模式">🌙</div>
+<div class="color-btn" onclick="toggleColorPanel()" title="自定义主题色">
+  <div class="swatch">◐</div>
+</div>
+<div class="color-panel theme-trans" id="colorPanel">
+  <div class="label">主题色</div>
+  <input type="color" id="colorPicker" value="#E91E63" onchange="applyTheme(this.value)">
+  <button class="reset-btn" onclick="resetTheme()">恢复默认</button>
+</div>
+<div class="blur-bg" id="blurBg"></div>
+
+<div class="container">
+
+<!-- Login Page -->
+<div id="loginPage" class="page active">
+  <div class="login-brand">
+    <div class="login-logo">BILITASK</div>
+    <div class="login-sub">By--Echo979</div>
+  </div>
+  <h2>扫码登录</h2>
+  <div class="qr-box">
+    <img id="qrImg" src="" alt="QR Code">
+    <div class="qr-tip" id="qrTip">请用B站App扫码</div>
+  </div>
+  <div class="footer-link">
+    <a href="https://github.com/haindc" target="_blank" rel="noopener">github.com/haindc</a>
+  </div>
+</div>
+
+<!-- Main Page -->
+<div id="mainPage" class="page">
+  <div class="header-brand">
+    <span class="header-logo">BILITASK</span>
+    <span class="header-sub">By--Echo979</span>
+  </div>
+  <div class="user-bar">
+    <img id="userFace" src="" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2244%22 height=%2244%22><rect fill=%22%23FCE4EC%22 width=%2244%22 height=%2244%22 rx=%2222%22/><text x=%2222%22 y=%2230%22 text-anchor=%22middle%22 font-size=%2220%22 fill=%22%23E91E63%22>👤</text></svg>'">
+    <div class="user-info">
+      <div class="user-name" id="userName"></div>
+      <div class="user-id" id="userId"></div>
+    </div>
+    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+  </div>
+
+  <div class="exp-card">
+    <div class="exp-row">
+      <span class="exp-text" id="expCurrent">0 / 0</span>
+      <span class="exp-level">Lv.<span id="expLevel">0</span></span>
+    </div>
+    <div class="exp-bar"><div class="exp-fill" id="expFill" style="width:0%"></div></div>
+    <div class="exp-forecast" id="expForecast"></div>
+  </div>
+
+  <div class="cards">
+    <div class="card" id="cardLogin">
+      <div class="card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="card-name">每日登录</div>
+      <div class="card-exp">+5 EXP</div>
+      <div class="card-status" id="cardLoginStatus">---</div>
+    </div>
+    <div class="card" id="cardWatch">
+      <div class="card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </div>
+      <div class="card-name">观看视频</div>
+      <div class="card-exp">+5 EXP</div>
+      <div class="card-status" id="cardWatchStatus">---</div>
+    </div>
+    <div class="card" id="cardCoin">
+      <div class="card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+      </div>
+      <div class="card-name">投币</div>
+      <div class="card-exp">+10/枚</div>
+      <div class="card-status" id="cardCoinStatus">---</div>
+    </div>
+    <div class="card" id="cardShare">
+      <div class="card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98"/><path d="M15.41 6.51l-6.82 3.98"/></svg>
+      </div>
+      <div class="card-name">分享视频</div>
+      <div class="card-exp">+5 EXP</div>
+      <div class="card-status" id="cardShareStatus">---</div>
+      <div class="card-note" id="cardShareNote">仅APP端可完成</div>
+    </div>
+  </div>
+
+  <div class="btns">
+    <button class="btn btn-outline" onclick="showPage('settings')">任务设置</button>
+    <button class="btn btn-primary" id="runBtn" onclick="runTasks()">立即运行</button>
+  </div>
+  <div class="log-box" id="logBox"></div>
+  <button class="btn-sm" onclick="logout()">退出登录</button>
+  <div class="footer-link"><a href="https://github.com/haindc" target="_blank" rel="noopener">github.com/haindc</a></div>
+</div>
+
+<!-- Settings Page -->
+<div id="settingsPage" class="page">
+  <div class="header-brand">
+    <span class="header-logo">BILITASK</span>
+    <span class="header-sub">By--Echo979</span>
+  </div>
+  <h2>
+    <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    &nbsp;任务设置
+  </h2>
+  <div class="setting">
+    <div>
+      <div class="setting-label">每日登录</div>
+      <div class="setting-exp">+5 EXP</div>
+    </div>
+    <div class="toggle on" id="toggleLogin" onclick="toggleTask('login')"></div>
+  </div>
+  <div class="setting">
+    <div>
+      <div class="setting-label">观看视频</div>
+      <div class="setting-exp">+5 EXP</div>
+    </div>
+    <div class="toggle on" id="toggleWatch" onclick="toggleTask('watch')"></div>
+  </div>
+  <div class="setting" id="coinSetting">
+    <div style="flex:1;min-width:0">
+      <div class="setting-label">投币</div>
+      <div class="setting-exp" id="coinExp">+30 EXP (3枚)</div>
+    </div>
+    <div class="toggle on" id="toggleCoin" onclick="toggleTask('coin')"></div>
+    <input type="range" min="1" max="5" value="3" class="coin-slider" id="coinSlider" oninput="updateCoin(this.value)">
+    <span class="coin-val" id="coinVal">3</span>
+  </div>
+  <div class="setting">
+    <div>
+      <div class="setting-label">分享视频(移动端)</div>
+      <div class="setting-exp">+5 EXP · 仅APP端可完成</div>
+    </div>
+    <div class="toggle on toggle-locked" id="toggleShare" style="cursor:not-allowed;opacity:.7" title="仅APP端可完成，无法关闭"></div>
+  </div>
+  <a class="back-link" href="#" onclick="showPage('main')">← 返回看板</a>
+  <div class="footer-link"><a href="https://github.com/haindc" target="_blank" rel="noopener">github.com/haindc</a></div>
+</div>
+
+</div>
+
+<script>
+let pollTimer=null,loginKey='',coinSaveTimer=null
+
+function toggleColorPanel(){document.getElementById('colorPanel').classList.toggle('show')}
+// 点击面板外部关闭
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('colorPanel'),btn=document.querySelector('.color-btn')
+  if(!panel.contains(e.target)&&!btn.contains(e.target)) panel.classList.remove('show')
+})
+function hexToRgb(h){const x=h.replace('#','');return[parseInt(x.substring(0,2),16),parseInt(x.substring(2,4),16),parseInt(x.substring(4,6),16)]}
+function lighten(rgb,a){return rgb.map(c=>Math.min(255,Math.round(c+(255-c)*a)))}
+function darken(rgb,a){return rgb.map(c=>Math.round(c*(1-a)))}
+function toHex(rgb){return'#'+rgb.map(c=>c.toString(16).padStart(2,'0')).join('')}
+;(function(){try{const s=localStorage.getItem('bilitask-theme');if(s){document.getElementById('colorPicker').value=s;applyTheme(s)}}catch(e){}})()
+
+let darkMode=false
+
+function blurTransition(ms,cb){
+  const bg=document.getElementById('blurBg')
+  const curBg=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
+  bg.style.background=curBg
+  bg.style.opacity='0'
+  document.querySelector('.container').classList.add('blur')
+  setTimeout(()=>{
+    bg.style.opacity='1'
+    cb()
+    setTimeout(()=>{
+      document.querySelector('.container').classList.remove('blur')
+      bg.style.opacity='0'
+    },450)
+  },ms)
+}
+
+function toggleMode(){
+  darkMode=!darkMode
+  blurTransition(400,()=>setMode(darkMode?'dark':'light'))
+}
+
+function setMode(m){
+  darkMode=m==='dark'
+  const btn=document.getElementById('darkBtn')
+  if(darkMode){
+    document.documentElement.style.setProperty('--bg','#1a1a2e')
+    document.documentElement.style.setProperty('--surface','#16213e')
+    document.documentElement.style.setProperty('--surface2','#0f3460')
+    document.documentElement.style.setProperty('--border','#444')
+    document.documentElement.style.setProperty('--text','#eee')
+    document.documentElement.style.setProperty('--text2','#aaa')
+    btn.innerHTML='☀️'
+  }else{
+    applyTheme(document.getElementById('colorPicker').value,true)
+    btn.innerHTML='🌙'
+  }
+  try{localStorage.setItem('bilitask-darkmode',m)}catch(e){}
+}
+
+function resetTheme(){
+  applyTheme('#E91E63') // 只恢复颜色，不动暗色模式
+}
+
+function applyTheme(hex,force){
+  document.getElementById('colorPicker').value=hex
+  try{localStorage.setItem('bilitask-theme',hex)}catch(e){}
+  if(darkMode&&!force) return
+  const rgb=hexToRgb(hex)
+  document.documentElement.style.setProperty('--bg',toHex(lighten(rgb,.94)))
+  document.documentElement.style.setProperty('--surface',toHex(lighten(rgb,.98)))
+  document.documentElement.style.setProperty('--surface2',toHex(lighten(rgb,.85)))
+  document.documentElement.style.setProperty('--border',toHex(lighten(rgb,.65)))
+  document.documentElement.style.setProperty('--primary',hex)
+  document.documentElement.style.setProperty('--text',toHex(darken(rgb,.65)))
+  document.documentElement.style.setProperty('--text2',toHex(darken(rgb,.45)))
+  document.documentElement.style.setProperty('--red','#E53935')
+}
+;(function(){try{const m=localStorage.getItem('bilitask-darkmode');if(m)setMode(m)}catch(e){}})()
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.animation='none'})
+  let t
+  if(name==='main'){t=document.getElementById('mainPage');t.classList.add('active');refreshStatus()}
+  else if(name==='settings'){t=document.getElementById('settingsPage');t.classList.add('active');refreshSettings()}
+  else{t=document.getElementById('loginPage');t.classList.add('active')}
+  void t.offsetWidth;t.style.animation='fadeSlideIn .35s cubic-bezier(.22,.61,.36,1)'
+}
+
+async function loadQR(){
+  const r=await fetch('/api/qrcode').then(r=>r.json())
+  if(r.success){document.getElementById('qrImg').src=r.qrcode;loginKey=r.key;document.getElementById('qrTip').textContent='请用B站App扫码';startPoll()}
+  else{document.getElementById('qrTip').textContent='获取失败，刷新重试';setTimeout(loadQR,5000)}
+}
+
+function startPoll(){
+  if(pollTimer)clearInterval(pollTimer)
+  pollTimer=setInterval(async()=>{
+    const r=await fetch('/api/poll-login?key='+loginKey).then(r=>r.json())
+    if(r.success){clearInterval(pollTimer);document.getElementById('qrTip').textContent='登录成功！'
+      blurTransition(300,()=>showPage('main'))}
+    else if(r.status==='scanned')document.getElementById('qrTip').textContent='已扫码，请在手机上确认...'
+    else if(r.status==='expired'){clearInterval(pollTimer);document.getElementById('qrTip').textContent='过期，刷新中...';setTimeout(loadQR,1000)}
+  },2000)
+}
+
+async function refreshStatus(){
+  const res=await fetch('/api/status').then(r=>r.json())
+  if(!res.loggedIn){showPage('login');loadQR();return}
+  document.getElementById('userFace').src=res.user.face?'/api/avatar?url='+encodeURIComponent(res.user.face):''
+  document.getElementById('userName').textContent=res.user.name
+  document.getElementById('userId').textContent='UID: '+res.user.mid
+  document.getElementById('expLevel').textContent=res.user.level
+
+  const isMaxLevel=res.user.level>=6
+  const pct=isMaxLevel?100:(res.user.nextExp>0?Math.round(res.user.currentExp/res.user.nextExp*100):0)
+  document.getElementById('expFill').style.width=pct+'%'
+  document.getElementById('expCurrent').textContent=res.user.currentExp+' / '+(isMaxLevel?res.user.currentExp:res.user.nextExp)
+  
+  if(isMaxLevel){
+    document.getElementById('expForecast').textContent='🎉 您已满级！任务已停止'
+    document.getElementById('runBtn').disabled=true
+    document.getElementById('runBtn').textContent='已满级'
+  }else{
+    document.getElementById('expForecast').textContent=res.daysToUpgrade===Infinity?'请开启至少一个任务':'每日预估 +'+res.dailyExp+' EXP → 预计 '+res.daysToUpgrade+' 天 到达 Lv.'+(res.user.level+1)
+    document.getElementById('runBtn').disabled=false
+    document.getElementById('runBtn').textContent='立即运行'
+  }
+  const ts=res.taskStatus||{},tc=res.tasks||{}
+  updateCard('cardLogin',tc.login,ts.login,'登录')
+  updateCard('cardWatch',tc.watch,ts.watch,'观看')
+  updateCard('cardCoin',tc.coin?.enabled,ts.coins>=(tc.coin?.count||3),'投币',ts.coins||0,tc.coin?.count||3)
+  updateCard('cardShare',tc.share,ts.share,'分享')
+}
+
+function updateCard(id,enabled,done,label,current,total){
+  const el=document.getElementById(id),st=document.getElementById(id+'Status')
+  el.classList.remove('done','disabled')
+  if(!enabled){el.classList.add('disabled');st.textContent='已禁用';st.style.color='var(--border)'}
+  else if(done){el.classList.add('done');st.textContent=label==='投币'?current+'/'+total+' 完成':'已完成';st.style.color='var(--primary)'}
+  else{st.textContent=label==='投币'?current+'/'+total+' 待完成':'未完成';st.style.color='var(--text2)'}
+}
+
+async function refreshSettings(){
+  const res=await fetch('/api/status').then(r=>r.json()),t=res.tasks||{}
+  setToggle('toggleLogin',t.login);setToggle('toggleWatch',t.watch)
+  setToggle('toggleCoin',t.coin?.enabled);setToggle('toggleShare',true)
+  document.getElementById('coinSlider').value=t.coin?.count||3
+  document.getElementById('coinVal').textContent=t.coin?.count||3
+  updateCoinState(t.coin?.enabled);updateCoinExp()
+}
+
+function setToggle(id,enabled){document.getElementById(id).classList.toggle('on',enabled)}
+
+async function toggleTask(task){
+  if(task==='share')return // 仅APP端可完成，不可关闭
+  const el=document.getElementById('toggle'+task.charAt(0).toUpperCase()+task.slice(1))
+  const enabled=!el.classList.contains('on')
+  const body={task,enabled}
+  if(task==='coin')body.count=parseInt(document.getElementById('coinSlider').value)
+  await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+  refreshSettings()
+}
+
+function updateCoin(v){document.getElementById('coinVal').textContent=v;updateCoinExp();saveCoinCount(parseInt(v))}
+function saveCoinCount(count){
+  if(coinSaveTimer)clearTimeout(coinSaveTimer)
+  coinSaveTimer=setTimeout(async()=>{await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task:'coin',enabled:document.getElementById('toggleCoin').classList.contains('on'),count})})},300)
+}
+function updateCoinExp(){
+  const c=parseInt(document.getElementById('coinSlider').value),enabled=document.getElementById('toggleCoin').classList.contains('on')
+  document.getElementById('coinExp').textContent=enabled?'+'+c*10+' EXP ('+c+'枚)':'+0 EXP (已关闭)'
+}
+function updateCoinState(enabled){
+  const s=document.getElementById('coinSlider');s.disabled=!enabled;s.style.opacity=enabled?'1':'.3'
+  s.style.pointerEvents=enabled?'auto':'none'
+}
+
+async function runTasks(){
+  const btn=document.getElementById('runBtn'),logEl=document.getElementById('logBox')
+  btn.innerHTML='<span class="loading"></span>运行中...';btn.disabled=true;logEl.classList.add('show');logEl.innerHTML=''
+  try{
+    const res=await fetch('/api/run',{method:'POST'}).then(r=>r.json())
+    if(res.success&&res.result){res.result.logs.forEach(l=>{logEl.innerHTML+=l+'<br>'})}
+    else logEl.innerHTML='执行失败: '+(res.error||'未知')
+  }catch(e){logEl.innerHTML='请求失败: '+e.message}
+  btn.textContent='立即运行';btn.disabled=false;logEl.scrollTop=logEl.scrollHeight;await refreshStatus()
+}
+
+async function logout(){await fetch('/api/logout',{method:'POST'});showPage('login');loadQR()}
+
+(async function init(){const r=await fetch('/api/status').then(r=>r.json());r.loggedIn?showPage('main'):(showPage('login'),loadQR())})()
+</script>
+</body>
+</html>

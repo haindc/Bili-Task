@@ -1,0 +1,10 @@
+{
+  "cookie": "",
+  "token": "",
+  "tasks": {
+    "login": true,
+    "watch": true,
+    "coin": { "enabled": true, "count": 3 },
+    "share": true
+  }
+}
