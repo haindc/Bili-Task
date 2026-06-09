@@ -18,6 +18,22 @@ const app = express()
 app.use(express.json())
 app.use(express.static(__dirname + '/public'))
 
+// 页面心跳，超时自动退出
+let lastHeartbeat = Date.now()
+const HEARTBEAT_TIMEOUT = 12000 // 12秒无心跳退出
+
+app.get('/api/heartbeat', (req, res) => {
+  lastHeartbeat = Date.now()
+  res.json({ ok: true })
+})
+
+setInterval(() => {
+  if (Date.now() - lastHeartbeat > HEARTBEAT_TIMEOUT) {
+    console.log('页面已关闭，服务退出')
+    process.exit(0)
+  }
+}, 3000)
+
 // 进程内缓存
 let taskStatus = { login: false, watch: false, coins: 0, share: false }
 let lastRunResult = null

@@ -472,6 +472,9 @@ async function runTasks(){
 async function logout(){await fetch('/api/logout',{method:'POST'});showPage('login');loadQR()}
 
 (async function init(){const r=await fetch('/api/status').then(r=>r.json());r.loggedIn?showPage('main'):(showPage('login'),loadQR())})()
+
+// 心跳 — 网页关闭时自动退出服务
+setInterval(()=>{fetch('/api/heartbeat').catch(()=>{})},5000)
 </script>
 </body>
 </html>
