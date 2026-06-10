@@ -37,7 +37,7 @@ npm start
 ## 注意事项
 
 - 项目本地化运行，登陆记录以及 cookie 保存在本地
-- - `config.json` 包含登录 cookie，已被 .gitignore 排除
+- `config.json` 包含登录 cookie，已被 .gitignore 排除
 - 首次运行需先扫码登录
 - 分享功能仅模拟APP端请求，B站可能不计入经验
 - 投币从每日热门视频池中自动选择
