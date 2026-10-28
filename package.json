@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "stop": "node stop.js"
+    "stop": "node stop.js",
+    "test": "node --test",
+    "preview": "node scripts/preview.js"
   },
   "author": "Echo979",
   "license": "MIT",
@@ -14,5 +16,11 @@
     "express": "^4.21.0",
     "node-cron": "^3.0.3",
     "qrcode": "^1.5.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
   }
 }
